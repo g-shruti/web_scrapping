@@ -1,6 +1,6 @@
 const request = require("request");
 const cheerio = require("cheerio");
-let fs = request("fs");
+let fs = require("fs");
 let data = {};
 
 request("https://github.com/topics",callback);
@@ -21,7 +21,7 @@ function callback(error,response,html)
     }
 }
 
-function topicProcessor(url,name)
+function topicProcessor(url,topicName)
 {
     request(url,function(error,response,html){
         const mt = cheerio.load(html);
@@ -29,9 +29,16 @@ function topicProcessor(url,name)
         allHeadings = allHeadings.slice(0 , 5);
 
         for(let i = 0; i<allHeadings.length ; i++){
-            console.log(mt(mt(allHeadings[i]).find("a")[1]).text().trim());
+            if(!data[topicName]){
+                data[topicName] = [];
+                data[topicName].push({name : mt(mt(allHeadings[i]).find("a")[1]).text().trim()});
+            }
+            else{
+                data[topicName].push({name : mt(mt(allHeadings[i]).find("a")[1]).text().trim()}); 
+            }
             console.log("https://github.com/" + mt(mt(allHeadings[i]).find("a")[1]).attr("href"));
             console.log("__________");
         }
+        fs.writeFileSync("data.json",JSON.stringify(data))  
     });
 }
